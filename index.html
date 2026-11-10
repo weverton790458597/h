@@ -34,7 +34,7 @@ textarea.in{resize:vertical}.in::placeholder{color:rgba(183,169,171,.6)}
 .msg{min-height:1.3em;margin:0;font-size:13px;color:var(--mute)}.msg.err{color:#ff6b7f}.msg.ok{color:var(--ok)}
 .btn{font:inherit;font-size:12px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--white);background:var(--ruby);border:1px solid var(--ruby);padding:12px 18px;cursor:pointer;min-height:46px;text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
 .btn:hover,.btn:focus-visible{background:#e0152f;border-color:#e0152f}.btn:focus-visible,.lnk:focus-visible,.tab:focus-visible{outline:2px solid var(--white);outline-offset:2px}
-.btn.ghost{background:transparent;border-color:var(--line)}.btn.ghost:hover{border-color:var(--white)}
+.btn.ghost{background:transparent;border-color:var(--line)}.btn.ghost:hover{border-color:var(--white);background:transparent}
 .btn.sm{padding:8px 12px;min-height:38px;font-size:11px}.btn[disabled]{opacity:.5;cursor:default}
 .lnk{background:none;border:0;color:var(--mute);font:inherit;font-size:12px;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;padding:8px 0;border-bottom:1px solid var(--line)}
 .switch{text-align:center}
@@ -49,7 +49,28 @@ textarea.in{resize:vertical}.in::placeholder{color:rgba(183,169,171,.6)}
 .acts{display:flex;gap:8px;flex-wrap:wrap}
 .empty{color:var(--mute);text-align:center;padding:24px 0}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(24px + env(safe-area-inset-bottom,0px));background:var(--white);color:var(--black);padding:10px 18px;max-width:calc(100% - 32px);text-align:center;font-size:12px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;z-index:50}
-@media (max-width:420px){.two{grid-template-columns:1fr}}
+
+/* seletor de templates */
+.hint{margin:0;font-size:12px;color:var(--mute)}
+.tpls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 10px}
+.tpl{position:relative;display:flex;flex-direction:column;align-items:stretch;gap:5px;min-width:0;padding:0;background:none;border:0;color:inherit;font:inherit;text-align:left;cursor:pointer;letter-spacing:0;text-transform:none}
+.tpl input{position:absolute;opacity:0;pointer-events:none}
+.tpl b{font-family:var(--display);font-size:18px;font-weight:600;line-height:1.1;margin-top:3px}
+.tpl small{font-size:11px;line-height:1.3;color:var(--mute);font-weight:300}
+.pv{display:flex;flex-direction:column;gap:5px;height:112px;padding:12px 10px;overflow:hidden;border:1px solid var(--line);transition:box-shadow .15s}
+.pv i{display:block;flex:none}
+.pv .pa{width:22px;height:22px}
+.pv .pn{height:5px;width:52%;border-radius:3px}
+.pv .pl{height:14px;width:100%}
+.tpl input:checked ~ .pv{box-shadow:0 0 0 2px var(--ruby)}
+.tpl input:checked ~ b::after{content:" ✓";color:var(--ruby);font-family:var(--body);font-size:13px}
+.tpl input:focus-visible ~ .pv,.tpl:focus-visible .pv{box-shadow:0 0 0 2px var(--black),0 0 0 4px var(--white)}
+.tpl:hover .pv{border-color:var(--mute)}
+.pv.plus{align-items:center;justify-content:center;border-style:dashed;font-size:30px;font-weight:300;color:var(--mute);background:var(--field)}
+.veil{position:fixed;inset:0;z-index:40;overflow-y:auto;display:grid;place-items:center;padding:16px;background:rgba(5,3,4,.82)}
+.veil .box{width:100%;max-width:420px}
+select.in{appearance:auto}
+@media (max-width:420px){.two{grid-template-columns:1fr}.tpls{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -80,12 +101,17 @@ textarea.in{resize:vertical}.in::placeholder{color:rgba(183,169,171,.6)}
 
     <div id="tabP" style="display:flex;flex-direction:column;gap:14px;margin-top:20px">
       <div id="list"></div>
-      <button class="btn" id="newBtn" type="button">+ Nova página · R$ 5,99/mês</button>
+      <button class="btn" id="newBtn" type="button">+ Nova página</button>
 
       <form class="box" id="form" autocomplete="off" hidden>
         <h2>Nova página</h2>
         <label class="lbl">Endereço desejado<span class="dom"><input class="in" id="sub" maxlength="30" autocapitalize="off" required><b>.hubbio.shop</b></span></label>
         <p class="msg" id="subMsg" role="status"></p>
+
+        <p class="sec">Escolha o visual</p>
+        <div class="tpls" id="tpls" role="radiogroup" aria-label="Visual da página"></div>
+        <p class="hint">Toque em um modelo para escolher. Quer algo só seu, feito pelo suporte? Toque em “Personalizado”.</p>
+
         <p class="sec">Sua página</p>
         <label class="lbl">Nome na página<input class="in" id="name" maxlength="60" required></label>
         <label class="lbl">Descrição<input class="in" id="tag" maxlength="200"></label>
@@ -93,7 +119,6 @@ textarea.in{resize:vertical}.in::placeholder{color:rgba(183,169,171,.6)}
         <div id="links" style="display:flex;flex-direction:column;gap:8px"></div>
         <label class="lbl">Redes (uma URL por linha, até 4)<textarea class="in" id="soc" rows="3" placeholder="https://instagram.com/..."></textarea></label>
         <label class="lbl">Texto do rodapé<input class="in" id="foot" maxlength="120"></label>
-        <label class="lbl">Orientação para a IA (opcional)<textarea class="in" id="prompt" rows="2" maxlength="600" placeholder="Ex.: visual rosa e minimalista"></textarea></label>
         <div id="docBox" hidden>
           <p class="sec">Dados para a cobrança (só na primeira vez)</p>
           <div class="two" style="margin-top:10px">
@@ -109,6 +134,27 @@ textarea.in{resize:vertical}.in::placeholder{color:rgba(183,169,171,.6)}
     <div id="tabC" hidden style="margin-top:20px"><div id="pays" style="display:flex;flex-direction:column;gap:10px"></div></div>
   </section>
 </div>
+
+<!-- PEDIDO DE TEMPLATE PERSONALIZADO -->
+<div class="veil" id="cx" hidden>
+  <form class="box" id="cxF" autocomplete="off" role="dialog" aria-modal="true" aria-labelledby="cxT">
+    <h2 id="cxT">Template personalizado</h2>
+    <p class="sub" id="cxS">Nossa equipe cria um visual só seu e acompanha até ficar pronto.</p>
+    <label class="lbl">O que você imagina?<textarea class="in" id="cxBrief" rows="4" maxlength="1000" required placeholder="Cores, estilo, referências, o que não pode faltar..."></textarea></label>
+    <label class="lbl">Seu WhatsApp com DDD<input class="in" id="cxTel" type="tel" inputmode="tel" autocomplete="tel" maxlength="40" required></label>
+    <label class="lbl">Aplicar em<select class="in" id="cxPage"></select></label>
+    <div id="cxDocBox" hidden>
+      <p class="sec">Dados para a cobrança (só na primeira vez)</p>
+      <div class="two" style="margin-top:10px">
+        <label class="lbl">Seu nome<input class="in" id="cxNome"></label>
+        <label class="lbl">CPF/CNPJ<input class="in" id="cxCpf" inputmode="numeric"></label>
+      </div>
+    </div>
+    <p class="msg" id="cxMsg" role="status"></p>
+    <div class="acts"><button class="btn" id="cxGo" type="submit">Pagar e falar com o suporte</button><button class="btn ghost" id="cxCancel" type="button">Cancelar</button></div>
+  </form>
+</div>
+
 <div class="toast" id="toast" hidden role="status"></div>
 
 <script>
@@ -119,9 +165,48 @@ textarea.in{resize:vertical}.in::placeholder{color:rgba(183,169,171,.6)}
   var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
   var money = function (v) { return 'R$ ' + Number(v || 0).toFixed(2).replace('.', ','); };
   var day = function (d) { return d ? new Date(d + 'T12:00:00').toLocaleDateString('pt-BR') : '—'; };
+  var when = function (d) { return d ? new Date(d).toLocaleDateString('pt-BR') : '—'; };
   var okUrl = function (u) { return /^https:\/\//i.test(u || '') ? u : ''; };
   var say = function (el, t, c) { el.textContent = t || ''; el.className = 'msg' + (c ? ' ' + c : ''); };
   var toastT; function toast(t) { var e = $('#toast'); e.textContent = t; e.hidden = false; clearTimeout(toastT); toastT = setTimeout(function () { e.hidden = true; }, 2600); }
+
+  // ---------- templates (as chaves são as mesmas de THEMES no hubbio-webhook e TEMPLATES no hubbio-checkout) ----------
+  // Cada miniatura é desenhada com estas cores/formas: avatar (av), nome (nm), link comum (ln) e link em destaque (ft).
+  var TPL = [
+    { k: 'ouro', n: 'Ouro', d: 'Escuro com dourado e moldura fina', bg: '#0c0a07', al: 'center', nm: '#f6efe0',
+      av: 'background:conic-gradient(#d6aa54,#fff4d6,#8a6a22,#d6aa54);border-radius:50%',
+      ln: 'background:rgba(246,239,224,.06);border:1px solid rgba(214,170,84,.45);border-radius:2px', ft: 'background:#d6aa54;border-radius:2px' },
+    { k: 'lavanda', n: 'Lavanda', d: 'Claro, macio e arredondado', bg: '#f1ecfa', al: 'center', nm: '#241a3d',
+      av: 'background:linear-gradient(135deg,#a78bfa,#f9a8d4);border-radius:12px 12px 4px 4px',
+      ln: 'background:#fff;border-radius:99px;box-shadow:0 2px 6px rgba(91,60,196,.18)', ft: 'background:#5b3cc4;border-radius:99px' },
+    { k: 'pop', n: 'Pop', d: 'Cores vivas e bordas grossas', bg: '#ffd23f', al: 'flex-start', nm: '#111',
+      av: 'background:#ff4f9a;border:2px solid #111;border-radius:6px',
+      ln: 'background:#fff;border:2px solid #111;border-radius:4px;box-shadow:2px 2px 0 #111', ft: 'background:#ff4f9a;border:2px solid #111;border-radius:4px;box-shadow:2px 2px 0 #111' },
+    { k: 'mare', n: 'Maré', d: 'Degradê escuro com vidro', bg: 'linear-gradient(170deg,#04121f,#073a52 55%,#0a6c74)', al: 'center', nm: '#eaf8f7',
+      av: 'background:conic-gradient(#5eead4,#38bdf8,#0a6c74,#5eead4);border-radius:50%',
+      ln: 'background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.24);border-radius:9px', ft: 'background:linear-gradient(90deg,#5eead4,#7dd3fc);border-radius:9px' },
+    { k: 'folha', n: 'Folha', d: 'Editorial claro, links em lista', bg: '#eef1e8', al: 'flex-start', nm: '#17261d',
+      av: 'background:#1f5a40;border-radius:50%',
+      ln: 'background:none;border-top:1px solid rgba(23,38,29,.4)', ft: 'background:#1f5a40' }
+  ];
+  function pv(t) {
+    return '<span class="pv" style="background:' + t.bg + ';align-items:' + t.al + '"><i class="pa" style="' + t.av + '"></i><i class="pn" style="background:' + t.nm + '"></i>' +
+      '<i class="pl" style="' + t.ft + '"></i><i class="pl" style="' + t.ln + '"></i><i class="pl" style="' + t.ln + '"></i></span>';
+  }
+  $('#tpls').innerHTML = TPL.map(function (t, i) {
+    return '<label class="tpl"><input type="radio" name="tpl" value="' + t.k + '"' + (i === 0 ? ' checked' : '') + '>' + pv(t) + '<b>' + t.n + '</b><small>' + t.d + '</small></label>';
+  }).join('') +
+    '<button class="tpl" id="cxOpen" type="button"><span class="pv plus" aria-hidden="true">+</span><b>Personalizado</b><small id="cxSmall">Feito com o suporte</small></button>';
+
+  // valores vindos da função (PLAN_VALUE, CUSTOM_VALUE e WhatsApp do suporte)
+  var info = { plan: 5.99, custom: 0, support: '' };
+  function applyInfo() {
+    $('#newBtn').textContent = '+ Nova página · ' + money(info.plan) + '/mês';
+    $('#cxSmall').textContent = info.custom ? 'Feito com o suporte · ' + money(info.custom) + ' único' : 'Feito com o suporte';
+    $('#cxS').textContent = 'Nossa equipe cria um visual só seu e acompanha até ficar pronto.' + (info.custom ? ' Pagamento único de ' + money(info.custom) + ', separado da mensalidade.' : '');
+    $('#cxGo').textContent = info.custom ? 'Pagar ' + money(info.custom) + ' e falar com o suporte' : 'Pagar e falar com o suporte';
+  }
+  applyInfo();
 
   // ---------- sessão (Supabase Auth via REST) ----------
   var S = null;
@@ -160,7 +245,7 @@ textarea.in{resize:vertical}.in::placeholder{color:rgba(183,169,171,.6)}
   }
 
   // ---------- telas ----------
-  var mode = 'in', timer = null, pages = [], pays = [];
+  var mode = 'in', timer = null, pages = [], pays = [], orders = [];
   function showAuth() {
     clearInterval(timer);
     $('#auth').hidden = false; $('#app').hidden = true; $('#out').hidden = true; $('#who').textContent = '';
@@ -188,7 +273,7 @@ textarea.in{resize:vertical}.in::placeholder{color:rgba(183,169,171,.6)}
       else { say($('#aMsg'), 'Conta criada! Confirme o e-mail que enviamos e depois entre.', 'ok'); setMode('in'); }
     }).catch(function (er) { go.disabled = false; say($('#aMsg'), authErr(er), 'err'); });
   };
-  $('#out').onclick = function () { save(null); pages = []; pays = []; showAuth(); };
+  $('#out').onclick = function () { save(null); pages = []; pays = []; orders = []; showAuth(); };
 
   function label(p) {
     var s = p.status, st = p.provision_step;
@@ -207,6 +292,13 @@ textarea.in{resize:vertical}.in::placeholder{color:rgba(183,169,171,.6)}
     if (/REFUND/.test(s || '')) return ['Estornado', 'b-mute'];
     return [s || '—', 'b-mute'];
   }
+  function orderLabel(s) {
+    if (s === 'pending') return ['Aguardando pagamento', 'b-warn'];
+    if (s === 'paid') return ['Em criação com o suporte', 'b-ok'];
+    if (s === 'done') return ['Pronto', 'b-ok'];
+    if (s === 'cancelled') return ['Cancelado', 'b-mute'];
+    return [s || '—', 'b-mute'];
+  }
 
   function renderPages() {
     $('#list').innerHTML = pages.length ? pages.map(function (p) {
@@ -217,22 +309,43 @@ textarea.in{resize:vertical}.in::placeholder{color:rgba(183,169,171,.6)}
         (acts ? '<div class="acts">' + acts + '</div>' : '') + '</div>';
     }).join('') : '<p class="empty">Você ainda não tem páginas. Crie a primeira abaixo.</p>';
   }
+  function supportLink() {
+    if (!okUrl(info.support)) return '';
+    return info.support + '?text=' + encodeURIComponent('Olá! Fiz um pedido de template personalizado no Hubbio.');
+  }
   function renderPays() {
     var by = {}; pages.forEach(function (p) { by[p.id] = p.subdomain; });
-    $('#pays').innerHTML = pays.length ? pays.map(function (x) {
-      var l = payLabel(x.status), u = okUrl(x.invoice_url), open = /^(PENDING|OVERDUE)$/.test(x.status) && u;
-      return '<div class="card"><div><b>' + money(x.valor) + '</b><small><span class="badge ' + l[1] + '">' + esc(l[0]) + '</span>' +
-        esc(by[x.assinatura_id] ? by[x.assinatura_id] + '.hubbio.shop' : 'Página') + ' · vence ' + day(x.vencimento) + '</small></div>' +
-        (open ? '<div class="acts"><a class="btn sm" href="' + esc(u) + '" target="_blank" rel="noopener">Pagar</a></div>' : '') + '</div>';
-    }).join('') : '<p class="empty">Nenhum pagamento ainda.</p>';
+    var h = '';
+    if (orders.length) {
+      h += '<p class="sec">Template personalizado</p>' + orders.map(function (o) {
+        var l = orderLabel(o.status), u = okUrl(o.invoice_url), sl = supportLink(), acts = '';
+        if (o.status === 'pending' && u) acts += '<a class="btn sm" href="' + esc(u) + '" target="_blank" rel="noopener">Pagar</a>';
+        if ((o.status === 'paid' || o.status === 'done') && sl) acts += '<a class="btn sm" href="' + esc(sl) + '" target="_blank" rel="noopener">Falar com o suporte</a>';
+        return '<div class="card"><div><b>' + money(o.valor) + '</b><small><span class="badge ' + l[1] + '">' + esc(l[0]) + '</span>' +
+          esc(by[o.assinatura_id] ? by[o.assinatura_id] + '.hubbio.shop' : 'Página nova') + ' · pedido em ' + when(o.created_at) + '</small></div>' +
+          (acts ? '<div class="acts">' + acts + '</div>' : '') + '</div>';
+      }).join('');
+    }
+    if (pays.length) {
+      if (orders.length) h += '<p class="sec">Mensalidades</p>';
+      h += pays.map(function (x) {
+        var l = payLabel(x.status), u = okUrl(x.invoice_url), open = /^(PENDING|OVERDUE)$/.test(x.status) && u;
+        return '<div class="card"><div><b>' + money(x.valor) + '</b><small><span class="badge ' + l[1] + '">' + esc(l[0]) + '</span>' +
+          esc(by[x.assinatura_id] ? by[x.assinatura_id] + '.hubbio.shop' : 'Página') + ' · vence ' + day(x.vencimento) + '</small></div>' +
+          (open ? '<div class="acts"><a class="btn sm" href="' + esc(u) + '" target="_blank" rel="noopener">Pagar</a></div>' : '') + '</div>';
+      }).join('');
+    }
+    $('#pays').innerHTML = h || '<p class="empty">Nenhum pagamento ainda.</p>';
   }
 
   function load() {
     return Promise.all([
       rest('assinaturas?select=id,subdomain,status,provision_step,page_url,valor,created_at&order=created_at.desc'),
-      rest('pagamentos?select=id,assinatura_id,valor,status,vencimento,invoice_url&order=vencimento.desc.nullslast')
+      rest('pagamentos?select=id,assinatura_id,valor,status,vencimento,invoice_url&order=vencimento.desc.nullslast'),
+      // se a tabela de pedidos ainda não existe, o painel segue funcionando
+      rest('pedidos_custom?select=id,assinatura_id,valor,status,invoice_url,created_at&order=created_at.desc').catch(function (e) { if (e.status === 401) throw e; return []; })
     ]).then(function (r) {
-      pages = r[0] || []; pays = r[1] || [];
+      pages = r[0] || []; pays = r[1] || []; orders = r[2] || [];
       renderPages(); renderPays();
     }).catch(function (e) { if (e.status === 401) { showAuth(); say($('#aMsg'), 'Entre novamente.', 'err'); } });
   }
@@ -240,21 +353,26 @@ textarea.in{resize:vertical}.in::placeholder{color:rgba(183,169,171,.6)}
     $('#auth').hidden = true; $('#app').hidden = false; $('#out').hidden = false;
     $('#who').textContent = S.email || '';
     load();
+    fn({ action: 'info' }).then(function (d) {
+      info = { plan: Number(d.plan) || info.plan, custom: Number(d.custom) || 0, support: d.support || '' };
+      applyInfo(); renderPays();
+    }).catch(function () {});
     clearInterval(timer);
     timer = setInterval(function () {
-      var busy = pages.some(function (p) { return /^(pending|provisioning|error)$/.test(p.status); });
+      var busy = pages.some(function (p) { return /^(pending|provisioning|error)$/.test(p.status); }) ||
+        orders.some(function (o) { return o.status === 'pending'; });
       if (!document.hidden && busy && S) load();
     }, 6000);
   }
   document.addEventListener('visibilitychange', function () { if (!document.hidden && S && !$('#app').hidden) load(); });
 
   // abas
+  function showTab(c) {
+    $('#tabP').hidden = c; $('#tabC').hidden = !c;
+    $('#t1').setAttribute('aria-selected', String(!c)); $('#t2').setAttribute('aria-selected', String(c));
+  }
   document.querySelectorAll('.tab').forEach(function (t) {
-    t.onclick = function () {
-      var c = t.getAttribute('data-tab') === 'c';
-      $('#tabP').hidden = c; $('#tabC').hidden = !c;
-      $('#t1').setAttribute('aria-selected', String(!c)); $('#t2').setAttribute('aria-selected', String(c));
-    };
+    t.onclick = function () { showTab(t.getAttribute('data-tab') === 'c'); };
   });
 
   // pagar uma página já criada (abre a fatura em nova aba; o painel segue acompanhando)
@@ -319,12 +437,13 @@ textarea.in{resize:vertical}.in::placeholder{color:rgba(183,169,171,.6)}
       if (t && u) links.push({ title: t, url: fix(u) });
     }
     var social = $('#soc').value.split('\n').map(function (s) { return s.trim(); }).filter(Boolean).slice(0, 4).map(fix);
+    var tpl = ($('input[name="tpl"]:checked') || {}).value || 'ouro';
     var w = window.open('', '_blank'); // abre já no clique para o navegador não bloquear
     go.disabled = true; say(msg, 'Criando cobrança...');
     fn({
-      action: 'create', subdomain: $('#sub').value, prompt: $('#prompt').value,
+      action: 'create', subdomain: $('#sub').value,
       nome: $('#nome').value, cpfCnpj: $('#doc').value,
-      config: { name: $('#name').value, tagline: $('#tag').value, footer: $('#foot').value, avatar: avatar, links: links, social: social }
+      config: { template: tpl, name: $('#name').value, tagline: $('#tag').value, footer: $('#foot').value, avatar: avatar, links: links, social: social }
     }).then(function (d) {
       go.disabled = false; say(msg, '');
       openInvoice(w, d.url);
@@ -334,6 +453,44 @@ textarea.in{resize:vertical}.in::placeholder{color:rgba(183,169,171,.6)}
     }).catch(function (er) {
       go.disabled = false; if (w) w.close();
       if (er.data && er.data.need === 'doc') $('#docBox').hidden = false;
+      say(msg, er.message, 'err');
+    });
+  };
+
+  // ---------- template personalizado (valor separado, feito com o suporte) ----------
+  var cxFocus = null;
+  function openCustom() {
+    cxFocus = document.activeElement;
+    var opts = '<option value="">Ainda vou criar a página</option>' + pages.filter(function (p) { return p.status !== 'cancelled'; }).map(function (p) {
+      return '<option value="' + esc(p.id) + '">' + esc(p.subdomain) + '.hubbio.shop</option>';
+    }).join('');
+    $('#cxPage').innerHTML = opts;
+    say($('#cxMsg'), '');
+    $('#cx').hidden = false;
+    $('#cxBrief').focus();
+  }
+  function closeCustom() { $('#cx').hidden = true; if (cxFocus && cxFocus.focus) cxFocus.focus(); }
+  $('#tpls').addEventListener('click', function (e) { if (e.target.closest('#cxOpen')) openCustom(); });
+  $('#cxCancel').onclick = closeCustom;
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !$('#cx').hidden) closeCustom(); });
+  $('#cxF').onsubmit = function (e) {
+    e.preventDefault();
+    var msg = $('#cxMsg'), go = $('#cxGo');
+    var w = window.open('', '_blank');
+    go.disabled = true; say(msg, 'Criando cobrança...');
+    fn({
+      action: 'custom', briefing: $('#cxBrief').value, contato: $('#cxTel').value, id: $('#cxPage').value,
+      nome: $('#cxNome').value, cpfCnpj: $('#cxCpf').value
+    }).then(function (d) {
+      go.disabled = false; say(msg, '');
+      openInvoice(w, d.url);
+      $('#cxF').reset(); $('#cxDocBox').hidden = true;
+      $('#cx').hidden = true;
+      toast('Pedido criado! Conclua o pagamento.');
+      showTab(true); load();
+    }).catch(function (er) {
+      go.disabled = false; if (w) w.close();
+      if (er.data && er.data.need === 'doc') $('#cxDocBox').hidden = false;
       say(msg, er.message, 'err');
     });
   };
