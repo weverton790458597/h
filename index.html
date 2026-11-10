@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0a0708">
+<meta name="color-scheme" content="dark">
+<meta name="description" content="Crie sua página de links em minutos, com seu próprio endereço .hubbio.shop.">
+<title>Hubbio — crie a sua página</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--black:#0a0708;--ink:#130c0e;--ruby:#c8102e;--white:#f7f3f2;--mute:#b7a9ab;--line:rgba(247,243,242,.16);--field:rgba(247,243,242,.06);--display:"Cormorant Garamond",Georgia,serif;--body:"Jost","Helvetica Neue",Arial,sans-serif;color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{background:var(--black);overflow-x:clip}
+body{margin:0;background:var(--black);color:var(--white);font:300 15px/1.5 var(--body);min-height:100dvh;position:relative;overflow-x:clip;
+  padding:max(40px,calc(env(safe-area-inset-top,0px) + 28px)) max(16px,env(safe-area-inset-right,0px)) max(64px,calc(env(safe-area-inset-bottom,0px) + 48px)) max(16px,env(safe-area-inset-left,0px))}
+body::before{content:"";position:absolute;top:-140px;left:50%;width:640px;height:640px;max-width:160vw;transform:translateX(-50%);background:radial-gradient(circle,rgba(200,16,46,.34),rgba(200,16,46,.08) 45%,transparent 70%);pointer-events:none}
+.wrap{position:relative;max-width:480px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+.hero{text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center}
+.eyebrow{font-size:11px;font-weight:500;letter-spacing:.32em;text-transform:uppercase;color:var(--ruby)}
+h1{margin:0;font-family:var(--display);font-weight:500;font-size:clamp(44px,13vw,64px);line-height:1;text-wrap:balance}
+h1 em{font-style:italic}
+.hero p{margin:0;color:var(--mute);max-width:36ch;text-wrap:balance}
+.price{font-size:12px;letter-spacing:.2em;text-transform:uppercase}
+.box{background:var(--ink);border:1px solid var(--line);padding:26px 22px;display:flex;flex-direction:column;gap:14px}
+.box h2{margin:0;font-family:var(--display);font-weight:600;font-size:28px;line-height:1.1}
+.lbl{display:flex;flex-direction:column;gap:6px;min-width:0;font-size:10.5px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--mute)}
+.in{width:100%;min-width:0;font:inherit;font-size:16px;font-weight:300;letter-spacing:0;text-transform:none;color:var(--white);background:var(--field);border:1px solid var(--line);border-radius:0;padding:11px 12px}
+textarea.in{resize:vertical}
+.in::placeholder{color:rgba(183,169,171,.6)}
+.in:focus{outline:2px solid var(--ruby);border-color:var(--ruby)}
+.sub{display:flex;align-items:center}.sub .in{flex:1}.sub b{padding-left:8px;color:var(--mute);font-weight:400;letter-spacing:0;text-transform:none;white-space:nowrap}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.sec{margin:6px 0 0;font-size:11px;font-weight:500;letter-spacing:.3em;text-transform:uppercase;color:var(--ruby)}
+.msg{min-height:1.3em;margin:0;font-size:13px;color:var(--mute)}
+.msg.err{color:#ff6b7f}.msg.ok{color:#6fd39b}
+.btn{font:inherit;font-size:12px;font-weight:500;letter-spacing:.22em;text-transform:uppercase;color:var(--white);background:var(--ruby);border:1px solid var(--ruby);padding:14px 18px;cursor:pointer;min-height:48px}
+.btn:hover,.btn:focus-visible{background:#e0152f;border-color:#e0152f}
+.btn:focus-visible{outline:2px solid var(--white);outline-offset:2px}
+.btn[disabled]{opacity:.5;cursor:default}
+.foot{text-align:center;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--mute)}
+@media (max-width:420px){.two{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <span class="eyebrow">Hubbio</span>
+    <h1>Sua bio no ar <em>em minutos</em></h1>
+    <p>Preencha, pague e receba sua página de links com endereço próprio. Sem instalar nada.</p>
+    <span class="price">R$ 19,90 por mês</span>
+  </header>
+
+  <form class="box" id="form" autocomplete="off">
+    <h2>Crie a sua página</h2>
+
+    <label class="lbl" for="sub">Endereço desejado
+      <span class="sub"><input class="in" id="sub" maxlength="30" autocapitalize="off" required><b>.hubbio.shop</b></span>
+    </label>
+    <p class="msg" id="subMsg" role="status"></p>
+
+    <p class="sec">Sua página</p>
+    <label class="lbl">Nome na página<input class="in" id="name" maxlength="60" required></label>
+    <label class="lbl">Descrição<input class="in" id="tag" maxlength="200"></label>
+    <label class="lbl">Foto<input type="file" id="photo" accept="image/*"></label>
+    <div id="links" style="display:flex;flex-direction:column;gap:8px"></div>
+    <label class="lbl">Redes (uma URL por linha, até 4)<textarea class="in" id="soc" rows="3" placeholder="https://instagram.com/..."></textarea></label>
+    <label class="lbl">Texto do rodapé<input class="in" id="foot" maxlength="120"></label>
+    <label class="lbl">Orientação para a IA (opcional)<textarea class="in" id="prompt" rows="2" maxlength="600" placeholder="Ex.: visual rosa e minimalista"></textarea></label>
+
+    <p class="sec">Seus dados</p>
+    <div class="two">
+      <label class="lbl">Seu nome<input class="in" id="nome" required></label>
+      <label class="lbl">CPF/CNPJ<input class="in" id="doc" inputmode="numeric" required></label>
+    </div>
+    <label class="lbl">E-mail<input class="in" id="mail" type="email" required></label>
+
+    <p class="msg" id="msg" role="status"></p>
+    <button class="btn" id="go" type="submit">Ir para o pagamento</button>
+  </form>
+
+  <p class="foot">Pagamento por PIX, boleto ou cartão</p>
+</div>
+
+<script>
+(function () {
+  var FN = 'https://abdliioyzkylccfylils.supabase.co/functions/v1/hubbio-checkout';
+  var KEY = 'sb_publishable_g6l6_QmwE4Tj85_KF_XHfQ_I4gFlY_n';
+  var ROOT = 'hubbio.shop';
+  var $ = function (s) { return document.querySelector(s); };
+  var N_LINKS = 4;
+
+  // campos de link
+  var rows = '';
+  for (var i = 0; i < N_LINKS; i++) rows += '<div class="two"><input class="in" data-t="' + i + '" placeholder="Título do link ' + (i + 1) + '" maxlength="60" aria-label="Título do link ' + (i + 1) + '"><input class="in" data-u="' + i + '" placeholder="https://..." inputmode="url" autocapitalize="off" aria-label="Endereço do link ' + (i + 1) + '"></div>';
+  $('#links').innerHTML = rows;
+
+  function api(body) {
+    return fetch(FN, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', apikey: KEY, Authorization: 'Bearer ' + KEY },
+      body: JSON.stringify(body)
+    }).then(function (r) {
+      return r.text().then(function (txt) {
+        var d = {}; try { d = txt ? JSON.parse(txt) : {}; } catch (e) {}
+        if (!r.ok) throw new Error(d.error || d.message || 'Erro ' + r.status + '. Tente novamente.');
+        return d;
+      });
+    }, function () { throw new Error('Sem conexão. Verifique a internet e tente de novo.'); });
+  }
+  function say(el, t, cls) { el.textContent = t; el.className = 'msg' + (cls ? ' ' + cls : ''); }
+
+  // validador do endereço (debounce)
+  var tm, subOk = false;
+  $('#sub').addEventListener('input', function (e) {
+    var v = e.target.value = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '');
+    var out = $('#subMsg'); subOk = false; clearTimeout(tm);
+    if (v.length < 3) { say(out, 'Mínimo de 3 caracteres.'); return; }
+    say(out, 'Verificando...');
+    tm = setTimeout(function () {
+      api({ action: 'check', subdomain: v }).then(function (d) {
+        if (v !== $('#sub').value) return;
+        subOk = d.available;
+        say(out, d.available ? '✓ ' + v + '.' + ROOT + ' está disponível' : (d.reason || 'Indisponível'), d.available ? 'ok' : 'err');
+      }).catch(function () { if (v === $('#sub').value) say(out, 'Não foi possível verificar agora.', 'err'); });
+    }, 400);
+  });
+
+  // foto: recorte quadrado 256px em JPEG
+  var avatar = '', photoBusy = false;
+  $('#photo').onchange = function (e) {
+    var f = e.target.files[0]; avatar = '';
+    if (!f) return;
+    photoBusy = true;
+    var fr = new FileReader();
+    fr.onload = function () {
+      var img = new Image();
+      img.onload = function () {
+        var c = document.createElement('canvas'); c.width = c.height = 256;
+        var s = Math.min(img.width, img.height);
+        c.getContext('2d').drawImage(img, (img.width - s) / 2, (img.height - s) / 2, s, s, 0, 0, 256, 256);
+        avatar = c.toDataURL('image/jpeg', 0.85); photoBusy = false;
+      };
+      img.onerror = function () { photoBusy = false; };
+      img.src = fr.result;
+    };
+    fr.onerror = function () { photoBusy = false; };
+    fr.readAsDataURL(f);
+  };
+
+  var fix = function (u) { return /^https?:\/\//i.test(u) ? u : 'https://' + u; };
+
+  $('#form').onsubmit = function (e) {
+    e.preventDefault();
+    var msg = $('#msg'), go = $('#go');
+    if (!subOk) { say(msg, 'Escolha um endereço disponível.', 'err'); return; }
+    if (photoBusy) { say(msg, 'Aguarde o processamento da foto e tente de novo.', 'err'); return; }
+    var links = [];
+    for (var i = 0; i < N_LINKS; i++) {
+      var t = $('[data-t="' + i + '"]').value.trim(), u = $('[data-u="' + i + '"]').value.trim();
+      if (t && u) links.push({ title: t, url: fix(u) });
+    }
+    var social = $('#soc').value.split('\n').map(function (s) { return s.trim(); }).filter(Boolean).slice(0, 4).map(fix);
+    go.disabled = true; say(msg, 'Criando seu checkout...');
+    api({
+      action: 'create', subdomain: $('#sub').value, nome: $('#nome').value, email: $('#mail').value,
+      cpfCnpj: $('#doc').value, prompt: $('#prompt').value,
+      config: { name: $('#name').value, tagline: $('#tag').value, footer: $('#foot').value, avatar: avatar, links: links, social: social }
+    }).then(function (d) {
+      if (!d.url) throw new Error('Não recebemos o link de pagamento. Tente novamente.');
+      location.href = d.url;
+    }).catch(function (err) { go.disabled = false; say(msg, err.message, 'err'); });
+  };
+})();
+</script>
+</body>
+</html>

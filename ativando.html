@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Criando sua página…</title>
+<style>
+  :root{--bg:#0b0b0d;--card:#141418;--line:#26262d;--white:#f5f5f7;--mute:#8d8d97;--ruby:#d6174d;--ok:#6fd39b}
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;background:var(--bg);color:var(--white);font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;
+    display:flex;align-items:center;justify-content:center;padding:24px}
+  main{width:100%;max-width:420px;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:32px 28px;text-align:center}
+  h1{font-size:22px;font-weight:600;margin:0 0 6px}
+  .sub{color:var(--mute);font-size:14px;margin:0 0 28px}
+  ol{list-style:none;margin:0 0 24px;padding:0;text-align:left}
+  li{display:flex;align-items:center;gap:14px;padding:12px 0;color:var(--mute);transition:color .3s}
+  li.on{color:var(--white)}
+  li.done{color:var(--white)}
+  .ic{flex:none;width:26px;height:26px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;font-size:14px;line-height:1}
+  li.on .ic{border-color:var(--ruby) var(--line) var(--line) var(--line);animation:spin .9s linear infinite}
+  li.done .ic{border-color:var(--ok);background:var(--ok);color:#0b0b0d}
+  li.done .ic::after{content:"✓";font-weight:700}
+  .bar{height:4px;border-radius:4px;background:var(--line);overflow:hidden}
+  .bar i{display:block;height:100%;width:5%;background:var(--ruby);transition:width .6s ease}
+  .msg{min-height:22px;margin:18px 0 0;font-size:13px;color:var(--mute)}
+  .msg.err{color:#ff8a9f}
+  .btn{display:inline-block;margin-top:14px;padding:12px 22px;border-radius:12px;background:var(--ruby);color:#fff;text-decoration:none;font-weight:600}
+  .btn[hidden]{display:none}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @media (prefers-reduced-motion:reduce){li.on .ic{animation:none;border-color:var(--ruby)}.bar i{transition:none}}
+</style>
+</head>
+<body>
+<main>
+  <h1 id="title">Estamos criando sua página</h1>
+  <p class="sub">Não feche esta janela. Leva menos de 2 minutos.</p>
+
+  <ol id="steps" aria-label="Etapas">
+    <li><span class="ic"></span><span>Analisando pagamento...</span></li>
+    <li><span class="ic"></span><span>Criando domínio...</span></li>
+    <li><span class="ic"></span><span>Estilizando site...</span></li>
+  </ol>
+
+  <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="5"><i id="fill"></i></div>
+  <p class="msg" id="msg" role="status" aria-live="polite"></p>
+  <a class="btn" id="go" hidden>Abrir minha página</a>
+</main>
+
+<script>
+(function () {
+  var FN  = 'https://abdliioyzkylccfylils.supabase.co/functions/v1/hubbio-checkout';
+  var KEY = 'sb_publishable_g6l6_QmwE4Tj85_KF_XHfQ_I4gFlY_n';
+
+  var POLL_MS = 3000;            // consulta o status a cada 3 s
+  var MAX_WAIT_MS = 10 * 60e3;   // desiste de esperar o provisionamento após 10 min
+  var DOMAIN_WAIT_MS = 3 * 60e3; // espera o domínio responder (DNS/HTTPS) por até 3 min
+
+  var $ = function (s) { return document.querySelector(s); };
+  var items = document.querySelectorAll('#steps li');
+  var fill = $('#fill'), bar = $('.bar'), msg = $('#msg'), go = $('#go'), title = $('#title');
+
+  var ref = new URLSearchParams(location.search).get('ref') || '';
+  var started = Date.now();
+
+  function say(t, err) { msg.textContent = t || ''; msg.className = 'msg' + (err ? ' err' : ''); }
+
+  // idx: 0 = analisando, 1 = criando domínio, 2 = estilizando, 3 = tudo pronto
+  function render(idx) {
+    for (var i = 0; i < items.length; i++) {
+      items[i].className = i < idx ? 'done' : (i === idx ? 'on' : '');
+    }
+    var pct = [8, 38, 72, 100][idx];
+    fill.style.width = pct + '%';
+    bar.setAttribute('aria-valuenow', pct);
+  }
+
+  function stepIndex(d) {
+    if (d.status === 'active') return 3;
+    if (d.status === 'pending') return 0;
+    if (d.step === 'estilo') return 2;
+    return 1; // provisioning/error com step "dominio" ou ainda sem step
+  }
+
+  function api(body) {
+    return fetch(FN, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', apikey: KEY, Authorization: 'Bearer ' + KEY },
+      body: JSON.stringify(body)
+    }).then(function (r) {
+      return r.text().then(function (t) {
+        var d = {}; try { d = t ? JSON.parse(t) : {}; } catch (e) {}
+        if (!r.ok) throw new Error(d.error || ('Erro ' + r.status));
+        return d;
+      });
+    });
+  }
+
+  function openPage(url) { location.replace(url); }
+
+  // O GitHub Pages responde com CORS liberado; assim dá para saber se o domínio já está no ar (200).
+  // Se o navegador não conseguir ler (DNS/HTTPS ainda propagando), tentamos de novo até o limite e então redirecionamos.
+  function waitDomain(url) {
+    var t0 = Date.now();
+    title.textContent = 'Quase lá!';
+    say('Colocando seu site no ar...');
+    go.href = url;
+    (function tick() {
+      fetch(url + '/?t=' + Date.now(), { cache: 'no-store' })
+        .then(function (r) { return r.ok; }, function () { return false; })
+        .then(function (ok) {
+          if (ok || Date.now() - t0 > DOMAIN_WAIT_MS) {
+            title.textContent = 'Pronto!';
+            say('Abrindo sua página...');
+            go.hidden = false;
+            setTimeout(function () { openPage(url); }, 900);
+          } else {
+            setTimeout(tick, 4000);
+          }
+        });
+    })();
+  }
+
+  function poll() {
+    api({ action: 'status', ref: ref }).then(function (d) {
+      if (d.status === 'cancelled') {
+        render(0); title.textContent = 'Pedido cancelado';
+        say('Este pedido foi cancelado. Fale com o suporte se precisar de ajuda.', true);
+        return;
+      }
+      var idx = stepIndex(d);
+      render(idx);
+
+      if (d.status === 'active' && d.page_url) { waitDomain(d.page_url); return; }
+
+      if (d.status === 'error') say('Tivemos um contratempo, estamos tentando de novo automaticamente...');
+      else if (d.status === 'pending') say('Aguardando a confirmação do pagamento...');
+      else say('');
+
+      if (Date.now() - started > MAX_WAIT_MS) {
+        title.textContent = 'Está demorando mais que o normal';
+        say('Pode fechar esta janela: sua página entra no ar assim que o processo terminar. Se não aparecer em alguns minutos, fale com o suporte.', true);
+        return;
+      }
+      setTimeout(poll, POLL_MS);
+    }).catch(function (e) {
+      // falha de rede momentânea: segue tentando
+      if (Date.now() - started > MAX_WAIT_MS) { say('Não foi possível consultar o andamento. Tente recarregar a página.', true); return; }
+      say('Reconectando...');
+      setTimeout(poll, POLL_MS * 2);
+    });
+  }
+
+  if (!/^[0-9a-f-]{36}$/i.test(ref)) {
+    title.textContent = 'Link inválido';
+    say('Não encontramos o seu pedido. Volte ao site e tente novamente.', true);
+    render(0);
+    return;
+  }
+  render(0);
+  poll();
+})();
+</script>
+</body>
+</html>
